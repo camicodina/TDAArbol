@@ -12,7 +12,7 @@
  * segundo o -1 si el primer elemento es menor al segundo.
  */
 typedef int (*abb_comparador)(void*, void*){
-
+    
 }
 
 /*
@@ -24,6 +24,19 @@ typedef void (*abb_liberar_elemento)(void*){
 
 }
 
+
+typedef struct nodo_abb {
+  void* elemento;
+  struct nodo_abb* izquierda;
+  struct nodo_abb* derecha;
+} nodo_abb_t;
+
+typedef struct abb{
+  nodo_abb_t* nodo_raiz;
+  abb_comparador comparador;
+  abb_liberar_elemento destructor;
+} abb_t;
+
 /*
  * Crea el arbol y reserva la memoria necesaria de la estructura.
  * Comparador se utiliza para comparar dos elementos.
@@ -33,7 +46,22 @@ typedef void (*abb_liberar_elemento)(void*){
  * Devuelve un puntero al arbol creado o NULL en caso de error.
  */
 abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
+    abb_t* arbol = calloc(1, sizeof(abb_t));
+    if(!arbol) return NULL;
+    return arbol;
+}
 
+/*
+ * Crea un nodo vacío.
+ */
+
+nodo_abb_t* aux_crear_nodos(void* elemento){
+    nodo_abb_t* nuevo_nodo = malloc(sizeof(nodo_abb_t));
+    if(!nuevo_nodo) return NULL;
+    nuevo_nodo->derecha = NULL;
+    nuevo_nodo->izquierda = NULL;
+    nuevo_nodo->elemento = elemento;
+    return nuevo_nodo;
 }
 
 /*
@@ -41,8 +69,27 @@ abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
  * Devuelve 0 si pudo insertar o -1 si no pudo.
  * El arbol admite elementos con valores repetidos.
  */
-int arbol_insertar(abb_t* arbol, void* elemento){
 
+int arbol_insertar(abb_t* arbol, void* elemento){
+    if(!arbol) return -1;
+    if(!elemento) return -1;
+    int comparador = arbol->comparador(arbol->nodo_raiz->elemento, elemento);
+    nodo_abb_t* nuevo_nodo = aux_crear_nodos(elemento);
+    if(!nuevo_nodo) return -1;
+    if((comparador == 0)||(comparador == 1)){ //primero mayor al segundo o son iguales, me muevo a la izquierda
+        if(arbol->nodo_raiz->izquierda != NULL){
+            free(nuevo_nodo);
+             arbol_insertar(arbol->nodo_raiz->izquierda, elemento);
+        }
+        arbol->nodo_raiz->izquierda = nuevo_nodo;
+    }else{ // (comparador == -1) el primer elemento es menor al segundo, me muevo a derecha
+        if(arbol->nodo_raiz->derecha != NULL){
+            free(nuevo_nodo);
+            arbol_insertar(arbol->nodo_raiz->derecha, elemento);
+        }
+        arbol->nodo_raiz->derecha = nuevo_nodo;
+    }
+    return 0;
 }
 
 /*
@@ -62,7 +109,22 @@ int arbol_borrar(abb_t* arbol, void* elemento){
  * Devuelve el elemento encontrado o NULL si no lo encuentra.
  */
 void* arbol_buscar(abb_t* arbol, void* elemento){
-
+    if(!arbol) return NULL;
+    if(!elemento) return NULL;
+    int comparador = arbol->comparador(arbol->nodo_raiz, elemento);
+    if(comparador == 1){ //me muevo a izquierda
+        if(arbol->nodo_raiz->izquierda != NULL){
+            arbol_buscar(arbol->nodo_raiz->izquierda, elemento);
+        }
+        return NULL;
+    }else if(comparador == -1){ //me muevo a derecha
+        if(arbol->nodo_raiz->derecha != NULL){
+            arbol_buscar(arbol->nodo_raiz->derecha, elemento);
+        }
+        return NULL;
+    }else{
+        return elemento;
+    }
 }
 
 /*
@@ -70,7 +132,8 @@ void* arbol_buscar(abb_t* arbol, void* elemento){
  * vacío o no existe.
  */
 void* arbol_raiz(abb_t* arbol){
-
+    if(!arbol) return NULL;
+    return arbol->nodo_raiz->elemento;
 }
 
 /*
@@ -78,7 +141,8 @@ void* arbol_raiz(abb_t* arbol){
  * Devuelve true si está vacío o el arbol es NULL, false si el árbol tiene elementos.
  */
 bool arbol_vacio(abb_t* arbol){
-
+    if((arbol_raiz(arbol) == NULL) || (!arbol)) return true;
+    return false;
 }
 
 /*
@@ -123,7 +187,11 @@ size_t arbol_recorrido_postorden(abb_t* arbol, void** array, size_t tamanio_arra
  * el arbol.
  */
 void arbol_destruir(abb_t* arbol){
-
+    if(!arbol) return NULL;
+    while(arbol->nodo_raiz != NULL){
+        arbol_borrar(arbol,arbol->nodo_raiz);
+    }
+    free(arbol);
 }
 
 /*
