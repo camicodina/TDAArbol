@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "abb.h"
 
+// -------------------------- FUNCIONES CREACION -------------------------- //
+
 /*
  * Crea el arbol y reserva la memoria necesaria de la estructura.
  * Comparador se utiliza para comparar dos elementos.
@@ -36,6 +38,34 @@ nodo_abb_t* aux_crear_nodos(void* elemento){
     return nuevo_nodo;
 }
 
+// -------------------------- FUNCIONES INSERCIÓN -------------------------- //
+
+/*
+ * Función recursiva para insertar nodos en el ABB.
+ */
+
+int aux_insertar_nodo(abb_t* arbol, nodo_abb_t* nodo_padre, nodo_abb_t* nuevo_nodo, void* elemento){
+    if(!arbol) return -1;
+    if(!nodo_padre) return -1;
+    if(!nuevo_nodo) return -1;
+    if(!elemento) return -1;
+    int comparador = arbol->comparador(nodo_padre->elemento, elemento);
+    if((comparador == 0)||(comparador == 1)){ //Primero mayor al segundo o son iguales. Me muevo a la izquierda
+        if(nodo_padre->izquierda != NULL){
+            free(nuevo_nodo);
+             aux_insertar_nodo(arbol,nodo_padre->izquierda,nuevo_nodo,elemento);
+        }
+        nodo_padre->izquierda = nuevo_nodo;
+    }else{ // (comparador == -1) el primer elemento es menor al segundo, me muevo a derecha
+        if(nodo_padre->derecha != NULL){
+            free(nuevo_nodo);
+            aux_insertar_nodo(arbol,nodo_padre->derecha,nuevo_nodo,elemento);
+        }
+        nodo_padre->derecha = nuevo_nodo;
+    }
+    return 0;
+}
+
 /*
  * Inserta un elemento en el arbol.
  * Devuelve 0 si pudo insertar o -1 si no pudo.
@@ -45,7 +75,6 @@ nodo_abb_t* aux_crear_nodos(void* elemento){
 int arbol_insertar(abb_t* arbol, void* elemento){
     if(!arbol) return -1;
     if(!elemento) return -1;
-    int comparador = arbol->comparador(arbol->nodo_raiz->elemento, elemento);
     nodo_abb_t* nuevo_nodo = aux_crear_nodos(elemento);
     if(!nuevo_nodo) return -1;
 
@@ -53,23 +82,48 @@ int arbol_insertar(abb_t* arbol, void* elemento){
         arbol->nodo_raiz = nuevo_nodo;
         return 0;
     }
-    // nodo_abb_t* nodo_padre = arbol->nodo_raiz;
-    
-    if((comparador == 0)||(comparador == 1)){ //Primero mayor al segundo o son iguales. Me muevo a la izquierda
-        if(arbol->nodo_raiz->izquierda != NULL){
-            free(nuevo_nodo);
-             arbol_insertar(arbol->nodo_raiz->izquierda, elemento);
-        }
-        arbol->nodo_raiz->izquierda = nuevo_nodo;
-    }else{ // (comparador == -1) el primer elemento es menor al segundo, me muevo a derecha
-        if(arbol->nodo_raiz->derecha != NULL){
-            free(nuevo_nodo);
-            arbol_insertar(arbol->nodo_raiz->derecha, elemento);
-        }
-        arbol->nodo_raiz->derecha = nuevo_nodo;
-    }
-    return 0;
+
+    nodo_abb_t* nodo_padre = arbol->nodo_raiz;
+    return aux_insertar_nodo(arbol,nodo_padre,nuevo_nodo,elemento);
 }
+
+// -------------------------- FUNCIONES BÚSQUEDA -------------------------- //
+
+/*
+ * Función recursiva para buscar nodos en el ABB.
+ */
+void* aux_buscar_nodo(abb_t* arbol, nodo_abb_t* nodo_padre, void* elemento){
+    int comparador = arbol->comparador(nodo_padre, elemento);
+    if(comparador == 0){ // Iguales. 
+        return nodo_padre->elemento;
+    }else if(comparador == 1){ //Me muevo a izquierda
+        if(nodo_padre->izquierda){
+            aux_buscar_nodo(nodo_padre->izquierda, elemento);
+        }
+        return NULL;
+    }else{ //comparador == -1. Me muevo a derecha
+        if(nodo_padre->derecha){
+            aux_buscar_nodo(nodo_padre->derecha, elemento);
+        }
+        return NULL; 
+    }
+}
+
+/*
+ * Busca en el arbol un elemento igual al provisto (utilizando la
+ * funcion de comparación).
+ *
+ * Devuelve el elemento encontrado o NULL si no lo encuentra.
+ */
+void* arbol_buscar(abb_t* arbol, void* elemento){
+    if(!arbol) return NULL;
+    if(!arbol->nodo_raiz) return NULL;
+    if(!elemento) return NULL;
+    nodo_abb_t* nodo_padre = arbol->nodo_raiz;
+    return aux_buscar_nodo(arbol,nodo_padre,elemento);
+}  
+
+// -------------------------- FUNCIONES BORRAR -------------------------- //
 
 /*
  * Para un elemento dado devuelve:
@@ -99,6 +153,42 @@ nodo_abb_t* aux_buscar_menor_subarbol_derecho(nodo_abb_t* nodo_menor_subarbol){
 }
 
 /*
+ * Función recursiva para borrar nodos en el ABB.
+ */
+
+int aux_borrar_nodo(abb_t* arbol, nodo_abb_t* nodo_padre, void* elemento){
+    if(!arbol) return -1;
+    if(!nodo_padre) return -1;
+    if(!elemento) return -1;
+    int comparador = arbol->comparador(nodo_padre->elemento, elemento);
+
+    if(comparador == 0){ // nodo_raiz tiene al elemento buscado
+        if(aux_cantidad_hijos(nodo_padre) == 0){
+            arbol->destructor(nodo_padre->elemento);
+            nodo_padre = NULL;
+        }else if(aux_cantidad_hijos(nodo_padre)==1){
+            if(!nodo_padre->derecha){
+                nodo_padre->elemento = nodo_padre->izquierda->elemento;
+                nodo_padre->izquierda = aux_borrar_nodo(arbol, nodo_padre->izquierda, nodo_padre->elemento);
+            }else{ //no hay hijo izquierdo
+                nodo_padre->elemento = nodo_padre->derecha->elemento;
+                nodo_padre->derecha = aux_borrar_nodo(arbol, nodo_padre->derecha, nodo_padre->elemento);
+            }
+        }else{ //tiene 2 hijos
+            nodo_abb_t* menor_subarbol_derecho = aux_buscar_menor_subarbol_derecho(nodo_padre->derecha);
+            nodo_padre->elemento = menor_subarbol_derecho->elemento;
+            menor_subarbol_derecho = aux_borrar_nodo(arbol, menor_subarbol_derecho, menor_subarbol_derecho->elemento);
+        }  
+    }else if(comparador == 1){ //Primero mayor al segundo. Me muevo a la izquierda.
+        aux_borrar_nodo(arbol, nodo_padre->izquierda, elemento);
+    }else{ //comparador == -1. Primero menor al segundo. Me muevo a la derecha.
+        aux_borrar_nodo(arbol, nodo_padre->derecha, elemento);   
+    }
+    return 0;
+}
+
+
+/*
  * Busca en el arbol un elemento igual al provisto (utilizando la
  * funcion de comparación) y si lo encuentra lo quita del arbol.
  * Adicionalmente, si encuentra el elemento, invoca el destructor con
@@ -110,58 +200,11 @@ int arbol_borrar(abb_t* arbol, void* elemento){
     if(!arbol->nodo_raiz) return -1;
     if(!elemento) return -1;
     if((!arbol_buscar(arbol,elemento)) || (arbol_buscar(arbol,elemento) != elemento)) return -1;
-
-    int comparador = arbol->comparador(arbol->nodo_raiz->elemento, elemento);
-    if(comparador == 0){ // nodo_raiz tiene al elemento buscado
-        if(aux_cantidad_hijos(arbol->nodo_raiz) == 0){
-            arbol->destructor(arbol->nodo_raiz->elemento);
-            arbol->nodo_raiz = NULL;
-        }else if(aux_cantidad_hijos(arbol->nodo_raiz)==1){
-            if(!arbol->nodo_raiz->derecha){
-                arbol->nodo_raiz->elemento = arbol->nodo_raiz->izquierda->elemento;
-                arbol->nodo_raiz->izquierda = arbol_borrar(arbol->nodo_raiz->izquierda, arbol->nodo_raiz->elemento);
-            }else{ //no hay hijo izquierdo
-                arbol->nodo_raiz->elemento = arbol->nodo_raiz->derecha->elemento;
-                arbol->nodo_raiz->derecha = arbol_borrar(arbol->nodo_raiz->derecha, arbol->nodo_raiz->elemento);
-            }
-        }else{ //tiene 2 hijos
-            nodo_abb_t* menor_subarbol_derecho = aux_buscar_menor_subarbol_derecho(arbol->nodo_raiz->derecha);
-            arbol->nodo_raiz->elemento = menor_subarbol_derecho->elemento;
-            menor_subarbol_derecho = arbol_borrar(menor_subarbol_derecho, menor_subarbol_derecho->elemento);
-        }  
-    }else if(comparador == 1){ //Primero mayor al segundo. Me muevo a la izquierda.
-        arbol_borrar(arbol->nodo_raiz->izquierda, elemento);
-    }else { //comparador == -1. Primero menor al segundo. Me muevo a la derecha.
-        arbol_borrar(arbol->nodo_raiz->derecha, elemento);   
-    }
-    return 0;
+    nodo_abb_t* nodo_padre = arbol->nodo_raiz;
+    return aux_borrar_nodo(arbol,nodo_padre,elemento);
 }
 
-/*
- * Busca en el arbol un elemento igual al provisto (utilizando la
- * funcion de comparación).
- *
- * Devuelve el elemento encontrado o NULL si no lo encuentra.
- */
-void* arbol_buscar(abb_t* arbol, void* elemento){
-    if(!arbol) return NULL;
-    if(!arbol->nodo_raiz) return NULL;
-    if(!elemento) return NULL;
-    int comparador = arbol->comparador(arbol->nodo_raiz, elemento);
-    if(comparador == 0){ // Iguales. 
-        return arbol->nodo_raiz->elemento;
-    }else if(comparador == 1){ //Me muevo a izquierda
-        if(arbol->nodo_raiz->izquierda){
-            arbol_buscar(arbol->nodo_raiz->izquierda, elemento);
-        }
-        return NULL;
-    }else{ //comparador == -1. Me muevo a derecha
-        if(arbol->nodo_raiz->derecha){
-            arbol_buscar(arbol->nodo_raiz->derecha, elemento);
-        }
-        return NULL; 
-    }
-}
+// -------------------------- OTRAS FUNCIONES -------------------------- //
 
 /*
  * Devuelve el elemento almacenado como raiz o NULL si el árbol está
@@ -185,6 +228,8 @@ bool arbol_vacio(abb_t* arbol){
     return false;
 }
 
+
+// -------------------------- FUNCIONES RECORRIDO -------------------------- //
 
 /*
  * - Recorrido en inorden en el subárbol izquierdo.

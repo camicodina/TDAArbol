@@ -18,7 +18,7 @@ _Explicación de lo entregado, como compilarlo (línea de compilación), como ej
 
 Comandos de compilación y ejecución:
 
-> $ gcc *.c -o abb -g -std=c99 -Wall -Wconversion -Wtype -limits -pedantic -Werror -O0  
+> $ gcc *.c -o abb -g -std=c99 -Wall -Wconversion -Wtype-limits -pedantic -Werror -O0  
 > $ ./abb
 
 Comandos de checkeo de memoria:
