@@ -76,16 +76,17 @@ int arbol_insertar(abb_t* arbol, void* elemento){
 /*
  * Función recursiva para buscar nodos en el ABB.
  */
-void aux_buscar_nodo(abb_t* arbol,nodo_abb_t* actual, void* elemento_buscado){
+nodo_abb_t* aux_buscar_nodo(abb_t* arbol,nodo_abb_t* actual, void* elemento_buscado){
     int comparador = arbol->comparador(actual, elemento_buscado);
-    if(comparador == 0){ // Iguales. 
-        return;
-    }else if(comparador == 1){ //Me muevo a izquierda
-        actual = actual->izquierda;
-    }else{ //comparador == -1. Me muevo a derecha
-        actual = actual->derecha; 
+    if(comparador != 0){
+        if(comparador == 1){ //Me muevo a izquierda
+            actual = actual->izquierda;
+        }else{ //comparador = -1. Me muevo a derecha
+            actual = actual->derecha; 
+        }
+        aux_buscar_nodo(arbol,actual,elemento_buscado);
     }
-    aux_buscar_nodo(arbol,actual,elemento_buscado);
+    return actual;
 }
 
 /*
@@ -98,8 +99,8 @@ void* arbol_buscar(abb_t* arbol, void* elemento){
     if(!arbol) return NULL;
     if(arbol_vacio(arbol)) return NULL;
 
-    aux_buscar_nodo(arbol,arbol->nodo_raiz,elemento);
-    return elemento;
+    nodo_abb_t* nodo_encontrado = aux_buscar_nodo(arbol,arbol->nodo_raiz,elemento);
+    return nodo_encontrado;
 }  
 
 
@@ -169,6 +170,50 @@ void aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar){
 
     aux_borrar_nodo(arbol,actual,elemento_borrar);
 }
+
+// nodo_abb_t* abb_borrar_recursivo(abb_t* arbol, nodo_abb_t* nodo_actual,
+// 								 void* elemento, bool* borrado){
+// 	if(!nodo_actual)
+// 		return NULL;
+
+// 	int comparacion=arbol->comparador(nodo_actual->elemento, elemento);
+
+// 	if(comparacion == 0){
+// 		int cant_hijos=cantidad_hijos(nodo_actual);
+// 		nodo_abb_t* nodo_aux=NULL;
+
+// 		if(cant_hijos==1)
+// 			nodo_aux=nodo_actual->izquierda? nodo_actual->izquierda : nodo_actual->derecha;
+// 		else if(cant_hijos==2){
+// 			nodo_abb_t* hijo_aux=NULL; 
+// 			nodo_aux=predecesor_inorden(nodo_actual->izquierda, &hijo_aux);
+// 			asignar_nuevos_hijos(nodo_aux, nodo_actual);
+// 		}
+// 		arbol->destructor(nodo_actual->elemento);
+// 		free(nodo_actual);
+// 		*borrado=true;
+// 		return nodo_aux;
+// 	}
+
+// 	if(comparacion == -1)
+// 		nodo_actual->derecha=abb_borrar_recursivo(arbol,nodo_actual->derecha,elemento,borrado);
+// 	else
+// 		nodo_actual->izquierda=abb_borrar_recursivo(arbol,nodo_actual->izquierda,elemento,borrado);
+
+// 	return nodo_actual;
+// }
+
+// int arbol_borrar(abb_t* arbol, void* elemento){
+
+// 	if(arbol_vacio(arbol))
+// 		return ERROR;
+
+// 	bool pudo_borrar=false;
+// 	arbol->nodo_raiz=abb_borrar_recursivo(arbol, arbol->nodo_raiz, elemento,&pudo_borrar);
+
+// 	return pudo_borrar? EXITO : ERROR;
+// }
+
 
 
 /*
