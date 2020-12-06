@@ -23,8 +23,10 @@ Comandos de compilación y ejecución:
 
 Comandos de checkeo de memoria:
 
-> $ valgrind --leak -check=full --track -origins=yes --show -reachable=yes ./abb
+> $ valgrind --leak-check=full --track-origins=yes --show-reachable=yes ./abb
 
+Hay dos archivos de pruebas: "abb_minipruebas" y "pruebas". Uno de ellos se encuentra en formato txt. 
+Si se desea probar el otro, convierta el C a txt y viceversa.
 
 ### Funcionamiento de la implementación... ⚙
 
