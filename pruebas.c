@@ -5,11 +5,20 @@
 // -------------------------- PRUEBAS ARBOL -------------------------- //
 
 void probar_crear_arbol(){
+    abb_t* arbol_inicial = NULL;
 
+    pa2m_afirmar((arbol_inicial=arbol_crear())!=NULL, "Puedo crear un árbol");
+    pa2m_afirmar(arbol_inicial->nodo_raiz == NULL, "Su inicio es NULL");
+    pa2m_afirmar(arbol_raiz(arbol_inicial) == NULL, "No tiene nodo raíz");
+    pa2m_afirmar(arbol_vacio(arbol_inicial) == true, "Está vacío");
+    pa2m_afirmar(arbol_borrar(arbol_inicial, 20) == -1, "No se puede borrar el elemento 20");
+
+    arbol_destruir(arbol_inicial);
 }
 
 
 void probar_insertar_en_arbol(){
+    char a='a',e='e',i='i',o='o',u='u';
     
 }
 
