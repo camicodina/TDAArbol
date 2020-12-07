@@ -17,8 +17,6 @@
  * Devuelve un puntero al arbol creado o NULL en caso de error.
  */
 abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
-    if(!comparador) return NULL;
-    if(!destructor) return NULL;
     abb_t* arbol = calloc(1,sizeof(abb_t));
 	if(!arbol) return NULL;
 	arbol->comparador= comparador;

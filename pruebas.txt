@@ -30,9 +30,8 @@ int comparar_contenido(void* elemento1, void* elemento2){
 }
 
 void destructor_de_contenido(void* elemento){
-    if(!elemento)
-        return;
-    destructor_de_contenido((pagina_web_t*)elemento);
+    if(!elemento) return;
+    destruir_contenido((pagina_web_t*)elemento);
 }
 
 // -------------------------- PRUEBAS ARBOL -------------------------- //
@@ -94,7 +93,7 @@ void probar_insertar_y_busqueda_en_arbol(){
 }
 
 void probar_borrar_en_arbol(){
-    abb_t* arbol_borrado =arbol_crear(comparar_contenido, destructor_de_contenido);
+    abb_t* arbol_borrado =arbol_crear(comparar_contenido,NULL);
     int a=5,l=2,g=15,o1=1,r=3,i=11,t=4,m=9,o2=8,s=10;
 
     arbol_insertar(arbol_borrado,&a);
@@ -133,7 +132,7 @@ void probar_borrar_en_arbol(){
 
 
 void probar_recorrido(){
-    abb_t* arbol_recorrer =arbol_crear(comparar_contenido, destructor_de_contenido);
+    abb_t* arbol_recorrer =arbol_crear(comparar_contenido,NULL);
     int c=6,a1=2,m=7,i=9,l=3,a2=1;
 
     arbol_insertar(arbol_recorrer,&c);
@@ -158,8 +157,25 @@ void probar_recorrido(){
 
 // -------------------------- PRUEBAS ITERADOR INTERNO -------------------------- //
 
+bool mostrar_elemento(int elemento, void* extra){
+    extra=extra; //para que no se queje el compilador, gracias -Werror -Wall
+    if(elemento)
+        printf("%i ", elemento);
+    return false;
+}
 
 void prueba_iterador_interno(){
+    abb_t* arbol =arbol_crear(comparar_contenido,NULL);
+    int c=6,a1=2,m=7,i=9,l=3,a2=1;
+
+    arbol_insertar(arbol,&c);
+    arbol_insertar(arbol,&a1);
+    arbol_insertar(arbol,&m);
+    arbol_insertar(arbol,&i);
+    arbol_insertar(arbol,&l);
+    arbol_insertar(arbol,&a2);
+
+    pa2m_afirmar(abb_con_cada_elemento(arbol, ABB_RECORRER_INORDEN, mostrar_elemento, NULL); == 4, "Iterador OK");
 
 }
 
