@@ -87,7 +87,7 @@ void* aux_buscar_nodo(abb_t* arbol,nodo_abb_t* actual, void* elemento_buscado){
             actual = actual->izquierda;
     }else{ //comparador = -1. Me muevo a derecha
         actual = actual->derecha;
-    }       
+    }
     return aux_buscar_nodo(arbol,actual,elemento_buscado);
 }
 
@@ -138,36 +138,42 @@ nodo_abb_t* aux_buscar_menor_subarbol_derecho(nodo_abb_t* nodo_menor_subarbol){
 /*
  * Función recursiva para borrar nodos en el ABB.
  */
-
-void aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar){
+nodo_abb_t* aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar,bool* fue_borrado){
+    if(!actual) return NULL;
     int comparador = arbol->comparador(actual->elemento, elemento_borrar);
-    if(comparador == 0){ // nodo_raiz tiene al elemento buscado
-        int cantidad_hijos = aux_cantidad_hijos(actual);
-        if(cantidad_hijos == 0){
-            arbol->destructor(actual->elemento);
-            free(actual);
-            return;
-        }else if(cantidad_hijos == 1){
-            if(!actual->derecha){ //no hay hijo derecho. Opero con el izquierdo.
-               actual->elemento = actual->izquierda->elemento;
-               actual = actual->izquierda;
-            }else{ //no hay hijo izquierdo. Opero con el derecho
-                actual->elemento = actual->derecha->elemento;
-                actual = actual->derecha;
-            }
-        }else{ //2 hijos
-            nodo_abb_t* menor_subarbol_derecho = aux_buscar_menor_subarbol_derecho(actual->derecha);
-            actual->elemento = menor_subarbol_derecho->elemento;
-            actual = menor_subarbol_derecho;
-        }
-        elemento_borrar = actual->elemento;
 
-    }else if(comparador == 1){ //Primero mayor al segundo. Me muevo a la izquierda.
-        actual = actual->izquierda;
-    }else{ //comparador == -1. Primero menor al segundo. Me muevo a la derecha.
-        actual = actual->derecha;
+    if(comparador == 0){ // nodo_raiz tiene al elemento buscado
+        nodo_abb_t* aux_nodo_padre = NULL;
+        int cantidad_hijos = aux_cantidad_hijos(actual);
+
+        if(cantidad_hijos == 1){
+            if(!actual->derecha){ //no hay hijo derecho. Opero con el izquierdo.
+               aux_nodo_padre = actual->izquierda;
+            }else{ //no hay hijo izquierdo. Opero con el derecho
+                aux_nodo_padre = actual->derecha;
+            }
+        }
+        if(cantidad_hijos == 2){
+ 			aux_nodo_padre = aux_buscar_menor_subarbol_derecho(actual->derecha);
+
+            if(actual->derecha != aux_nodo_padre){
+                aux_nodo_padre->derecha = actual->derecha;
+            }
+            aux_nodo_padre->izquierda=actual->izquierda;
+
+        }
+        arbol->destructor(actual->elemento);
+ 		free(actual);
+        *fue_borrado = true;
+ 		return aux_nodo_padre;
     }
-    aux_borrar_nodo(arbol,actual,elemento_borrar);
+
+    if(comparador == 1){ //Primero mayor al segundo. Me muevo a la izquierda.
+        actual->derecha=aux_borrar_nodo(arbol,actual->izquierda,elemento_borrar,fue_borrado);
+    }else{ //comparador == -1. Primero menor al segundo. Me muevo a la derecha.
+        actual->derecha=aux_borrar_nodo(arbol,actual->derecha,elemento_borrar,fue_borrado);
+    }
+    return actual;
 }
 
 
@@ -181,10 +187,10 @@ void aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar){
 int arbol_borrar(abb_t* arbol, void* elemento){
     if(!arbol) return -1;
     if(arbol_vacio(arbol)) return -1;
-    if((arbol_buscar(arbol,elemento) == NULL) || (arbol_buscar(arbol,elemento) != elemento)) return -1;
-
-    aux_borrar_nodo(arbol,arbol->nodo_raiz,elemento);
-    return 0;
+    bool fue_borrado=false;
+    arbol->nodo_raiz = aux_borrar_nodo(arbol,arbol->nodo_raiz,elemento,&fue_borrado);
+    if(fue_borrado) return 0;
+    return -1;
 }
 
 // -------------------------- OTRAS FUNCIONES -------------------------- //
@@ -216,15 +222,22 @@ bool arbol_vacio(abb_t* arbol){
  * - Visita el nodo raíz.
  * - Recorrido en inorden del subárbol derecho.
 */
-void aux_recorrido_inorden(nodo_abb_t* actual, size_t* contador, void** array, size_t tamanio_array){
-    if(!actual) return;
-    if(*contador == tamanio_array) return;
+size_t aux_recorrido_inorden(nodo_abb_t* actual, size_t contador, void** array, size_t tamanio_array){
+    if(actual->izquierda){
+        contador = aux_recorrido_inorden(actual->izquierda,contador, array, tamanio_array);
+    }
 
-    aux_recorrido_inorden(actual->izquierda,contador, array, tamanio_array);
-    if(*contador==tamanio_array) return;
-    array[*contador] = actual->elemento;
-    (*contador)++;
-    aux_recorrido_inorden(actual->derecha, contador, array, tamanio_array);
+    if(contador<tamanio_array){
+        array[contador] = actual->elemento;
+        contador++;
+    }else{
+        return contador;
+    }
+   
+    if(actual->derecha){
+        aux_recorrido_inorden(actual->derecha,contador,array,tamanio_array);
+    }
+    return contador;
 }
 
 
@@ -242,8 +255,8 @@ size_t arbol_recorrido_inorden(abb_t* arbol, void** array, size_t tamanio_array)
     if(!array) return 0;
     if(tamanio_array == 0) return 0;
     size_t contador = 0;
-    aux_recorrido_inorden(arbol->nodo_raiz, &contador, array, tamanio_array);
-    return contador;
+    
+    return aux_recorrido_inorden(arbol->nodo_raiz,contador,array,tamanio_array);
 }
 
 /*
@@ -251,15 +264,23 @@ size_t arbol_recorrido_inorden(abb_t* arbol, void** array, size_t tamanio_array)
  * - Recorrido en preorden del subárbol izquierdo.
  * - Recorrido en preorden del subárbol derecho.
 */
-void aux_recorrido_preorden(nodo_abb_t* actual, size_t* contador, void** array, size_t tamanio_array){
-    if(!actual) return;
-    if(*contador == tamanio_array) return;
+size_t aux_recorrido_preorden(nodo_abb_t* actual, size_t contador, void** array, size_t tamanio_array){
+    if(contador<tamanio_array){
+        array[contador] = actual->elemento;
+        contador++;
+    }else{
+        return contador;
+    }
 
-    array[*contador] = actual->elemento;
-    (*contador)++;
-    aux_recorrido_preorden(actual->izquierda,contador, array, tamanio_array);
-    aux_recorrido_preorden(actual->derecha, contador, array, tamanio_array);
+    if(actual->izquierda){
+        aux_recorrido_preorden(actual->izquierda,contador, array, tamanio_array);
+    }
+    if(actual->derecha){
+        aux_recorrido_preorden(actual->derecha,contador, array, tamanio_array);
+    }
+    return contador;
 }
+
 
 /*
  * Llena el array del tamaño dado con los elementos de arbol
@@ -275,27 +296,30 @@ size_t arbol_recorrido_preorden(abb_t* arbol, void** array, size_t tamanio_array
     if(!array) return 0;
     if(tamanio_array == 0) return 0;
     size_t contador = 0;
-    aux_recorrido_preorden(arbol->nodo_raiz, &contador, array, tamanio_array);
-    return contador;
+    return aux_recorrido_preorden(arbol->nodo_raiz,contador,array,tamanio_array);
 
 }
-
 
 /*
  * - Recorrido en postorden del subárbol izquierdo.
  * - Recorrido en preorden del subárbol derecho.
  * - Visita al nodo raíz.
 */
-void aux_recorrido_postorden(nodo_abb_t* actual, size_t* contador, void** array, size_t tamanio_array){
-    if(!actual) return;
-    if(*contador == tamanio_array) return;
-    
-    aux_recorrido_postorden(actual->izquierda,contador, array, tamanio_array);
-    aux_recorrido_postorden(actual->derecha, contador, array, tamanio_array);
+size_t aux_recorrido_postorden(nodo_abb_t* actual, size_t contador, void** array, size_t tamanio_array){
+    if(contador >= tamanio_array) return contador;
 
-    if(*contador == tamanio_array) return;
-    array[*contador] = actual->elemento;
-    (*contador)++;
+    if(actual->izquierda){
+    aux_recorrido_postorden(actual->izquierda,contador, array, tamanio_array);
+    }
+    if(actual->derecha){
+    aux_recorrido_postorden(actual->derecha, contador, array, tamanio_array);
+    }
+
+    if(contador < tamanio_array){
+        array[contador] = actual->elemento;
+        contador++;
+    }
+    return contador;
 }
 
 
@@ -313,8 +337,7 @@ size_t arbol_recorrido_postorden(abb_t* arbol, void** array, size_t tamanio_arra
     if(!array) return 0;
     if(tamanio_array == 0) return 0;
     size_t contador = 0;
-    aux_recorrido_postorden(arbol->nodo_raiz, &contador, array, tamanio_array);
-    return contador;
+    return aux_recorrido_postorden(arbol->nodo_raiz,contador,array,tamanio_array);
 
 }
 
@@ -364,9 +387,8 @@ void arbol_destruir(abb_t* arbol){
 */
 size_t abb_con_cada_elemento(abb_t* arbol, int recorrido, bool (*funcion)(void*, void*), void* extra){
     if(!arbol) return 0;
-    if(!arbol->nodo_raiz) return 0;
+    if(arbol_vacio(arbol)) return 0;
     if(!funcion) return 0;
-    if(!extra) return 0;
 
     size_t tamanio_array = 999;
 	void* array[tamanio_array];
@@ -390,3 +412,5 @@ size_t abb_con_cada_elemento(abb_t* arbol, int recorrido, bool (*funcion)(void*,
     }
     return cantidad_elementos_recorridos;
 }
+
+
