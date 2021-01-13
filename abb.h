@@ -5,6 +5,11 @@
 #define ABB_RECORRER_PREORDEN  1
 #define ABB_RECORRER_POSTORDEN 2
 
+#define EXITO 0
+#define FALLA -1
+#define VOY_IZQUIERDA -1
+#define VOY_DERECHA 1
+
 #include <stdbool.h>
 #include <stdlib.h>
 

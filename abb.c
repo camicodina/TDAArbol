@@ -2,6 +2,11 @@
 #define ABB_RECORRER_PREORDEN  1
 #define ABB_RECORRER_POSTORDEN 2
 
+#define EXITO 0
+#define FALLA -1
+#define VOY_IZQUIERDA -1
+#define VOY_DERECHA 1
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include "abb.h"
@@ -17,6 +22,8 @@
  * Devuelve un puntero al arbol creado o NULL en caso de error.
  */
 abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
+    if(!comparador) return NULL;
+    if(!destructor) return NULL;
     abb_t* arbol = calloc(1,sizeof(abb_t));
 	if(!arbol) return NULL;
 	arbol->comparador= comparador;
@@ -56,17 +63,18 @@ void aux_insertar_nodo(abb_t* arbol,nodo_abb_t* actual,nodo_abb_t* nuevo_nodo,vo
  */
 
 int arbol_insertar(abb_t* arbol, void* elemento){
-    if(!arbol) return -1;
+    if(!arbol) return FALLA;
+    if(!arbol->comparador) return FALLA;
     nodo_abb_t* nuevo_nodo= calloc(1, sizeof(nodo_abb_t));
- 	if(!nuevo_nodo) return -1;
+ 	if(!nuevo_nodo) return FALLA;
  	nuevo_nodo->elemento=elemento;
 
     if(arbol_vacio(arbol)){
         arbol->nodo_raiz = nuevo_nodo;
-        return 0;
+        return EXITO;
     }
     aux_insertar_nodo(arbol,arbol->nodo_raiz,nuevo_nodo,elemento);
-    return 0;
+    return EXITO;
 }
 
 // -------------------------- FUNCIONES BÚSQUEDA -------------------------- //
@@ -137,6 +145,8 @@ nodo_abb_t* aux_buscar_menor_subarbol_derecho(nodo_abb_t* nodo_menor_subarbol){
  * Función recursiva para borrar nodos en el ABB.
  */
 nodo_abb_t* aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar,bool* fue_borrado){
+    if(!arbol) return NULL;
+    if(!arbol->destructor) return NULL;
     if(!actual) return NULL;
     int comparador = arbol->comparador(actual->elemento, elemento_borrar);
 
@@ -183,12 +193,13 @@ nodo_abb_t* aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borra
  * Devuelve 0 si pudo eliminar el elemento o -1 en caso contrario.
  */
 int arbol_borrar(abb_t* arbol, void* elemento){
-    if(!arbol) return -1;
-    if(arbol_vacio(arbol)) return -1;
+    if(!arbol) return FALLA;
+    if(!arbol->destructor) return FALLA;
+    if(arbol_vacio(arbol)) return FALLA;
     bool fue_borrado=false;
     arbol->nodo_raiz = aux_borrar_nodo(arbol,arbol->nodo_raiz,elemento,&fue_borrado);
-    if(fue_borrado) return 0;
-    return -1;
+    if(fue_borrado) return EXITO;
+    return FALLA;
 }
 
 // -------------------------- OTRAS FUNCIONES -------------------------- //
@@ -346,6 +357,7 @@ size_t arbol_recorrido_postorden(abb_t* arbol, void** array, size_t tamanio_arra
  */
 void aux_destruir_nodos(abb_t* arbol, nodo_abb_t* nodo_a_destruir){
     if(!arbol) return;
+    if(!arbol->destructor) return;
     if(!nodo_a_destruir) return;
 
     aux_destruir_nodos(arbol, nodo_a_destruir->izquierda);
@@ -363,6 +375,7 @@ void aux_destruir_nodos(abb_t* arbol, nodo_abb_t* nodo_a_destruir){
  */
 void arbol_destruir(abb_t* arbol){
     if(!arbol) return;
+    if(!arbol->destructor) return;
     if(!arbol_vacio(arbol)){
         aux_destruir_nodos(arbol,arbol->nodo_raiz);
         }
