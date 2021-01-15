@@ -397,7 +397,7 @@ void arbol_destruir(abb_t* arbol){
 // -------------------------- ITERADOR INTERNO -------------------------- //
 
 void iterador_recorrido_inorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
-    if(!nodo_raiz) return true;
+    if(!nodo_raiz) return;
 
     if(!sigo && nodo_raiz->izquierda){
         iterador_recorrido_inorden(nodo_raiz->izquierda, funcion, extra, sigo, cantidad);
@@ -412,7 +412,7 @@ void iterador_recorrido_inorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, vo
 }
 
 void iterador_recorrido_preorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
-    if(!nodo_raiz) return true;
+    if(!nodo_raiz) return;
 
     if(!sigo){
         *sigo = funcion(nodo_raiz->elemento, extra);
@@ -427,7 +427,7 @@ void iterador_recorrido_preorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, v
 }
 
 void iterador_recorrido_postorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
-    if(!nodo_raiz) return true;
+    if(!nodo_raiz) return;
 
     if(!sigo && nodo_raiz->izquierda){
         iterador_recorrido_inorden(nodo_raiz->izquierda, funcion, extra, sigo, cantidad);
