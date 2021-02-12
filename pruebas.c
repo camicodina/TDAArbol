@@ -109,7 +109,7 @@ void probar_borrar_en_arbol(){
 
     pa2m_afirmar(arbol_borrar(arbol_borrado,&a) == 0, "Se borra nodo padre con 2 hijos");
     pa2m_afirmar(arbol_buscar(arbol_borrado,&a) == NULL, "No está el elemento a en el árbol");
-    pa2m_afirmar(arbol_raiz(arbol_borrado) == &o2, "Lo reemplaza el o2");
+    pa2m_afirmar(arbol_raiz(arbol_borrado) == &t, "Lo reemplaza la t");
 
     pa2m_afirmar(arbol_borrar(arbol_borrado,&s) == 0, "Se borra nodo s que no tenía hijos");
     pa2m_afirmar(arbol_buscar(arbol_borrado,&s) == NULL, "No está el elemento s en el árbol");

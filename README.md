@@ -26,7 +26,7 @@ Comandos de checkeo de memoria:
 > $ valgrind --leak-check=full --track-origins=yes --show-reachable=yes ./abb
 
 Hay dos archivos de pruebas: "abb_minipruebas" y "pruebas". Uno de ellos se encuentra en formato txt. 
-Si se desea probar el otro, convierta el C a txt y viceversa.
+Si se desea probar el otro, convierta el .c a .txt y viceversa.
 
 ### Funcionamiento de la implementación... ⚙
 
@@ -63,9 +63,9 @@ typedef struct abb{
 - Para las funciones de búsqueda se usa una lógica similar: comparando el elemento nodo padre y el elemento buscado, me muevo recursivamente a izquierda o a derecha hasta que el comparador de 0 (elementos son iguales).
 
 - Para borrar un nodo del árbol primero verifico que el elemento del nodo a borrar exista dentro del árbol y, de existir varias veces, borra únicamente la primera aparición al recorrer el árbol. Habiendo aclarado esto, el recorrido también es similar al empleado en las anteriores funciones: me muevo a izquierda o derecha utilizando una función recursiva hasta que el valor del elemento buscado coincida con el elemento del nodo considerado en la iteración. Cuando coinciden los elementos, verifico la cantidad de hijos...
-    - _0 hijos_: este sería el más sencillo de los casos ya que solo debo utilizar el destructor y hacer que el nodo sea NULL.
+    - _0 hijos_: este sería el más sencillo de los casos ya que solo debo utilizar el destructor, de existir este, y liberar el nodo.
     - _1 hijo_: verifico de qué lado está el hijo, ¿izquierda o derecha? Asigno al elemento del nodo padre el elemento del nodo hijo y vuelvo a llamar a la función de manera recursiva para que acomode los demás nodos en caso de que tenga más hijos.
-    - _2 hijos_: en este caso debo buscar cuál es el menor elemento dentro del subarbol derecho ya que lo pondré como elemento del nodo padre que quiero borrar. Luego vuelvo a llamar a la función de manera recursiva como en el caso anterior para borrar ese nodo más pequeño en el subárbol.
+    - _2 hijos_: en este caso debo buscar cuál es el mayor elemento dentro del subarbol izquierdo (el predecesor inorden) ya que lo pondré como elemento del nodo padre que quiero borrar. 
 
 - El árbol ofrece 3 opciones de recorrido:
     - _Inorden_: utiliza una función recursiva auxiliar que, de haber nodo izquierdo, avanza sobre él y sino agrega el elemento actual al array en la posición dada por el contador. Luego avanza a derecha si ésta no es NULL.
@@ -124,36 +124,68 @@ Si no tiene esta función, solo puede ingresar elementos que no requieran ningú
 
 * **Complejidad Algorítmica**
 
-Creación de árboles:
-En esta operación el proceso es siempre el mismo, verifica que está recibiendo lo necesario, reserva memoria e inicializa valores. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+<p align="center"><img width=80% src="https://miro.medium.com/max/2544/1*FkQzWqqIMlAHZ_xNrEPKeA.png"></p>
 
-O (1)
-Tree_insert, eliminar y buscar:
-En estas operaciones, se recorre el árbol para encontrar la ubicación o el elemento específico a insertar. Ahora, sabiendo que el árbol es una búsqueda binaria, sabemos que el elemento de la izquierda es más pequeño y el elemento de la derecha es más grande. Por lo tanto, cada vez que avanzo, reduzco n / 2 elementos hasta llegar a la posición deseada. Se puede convertir a 1 = N / 2 ^ x. Para resolver este problema, obtenemos x = log (n). Por tanto, la complejidad es:
+_Funciones de complejidad O(1):_
 
-Registro (n)
-Aclaración: Si el árbol se deforma para enumerar la complejidad, la complejidad se convierte en O (n) porque tendrá que atravesar todos los elementos y no se puede descartar.
+Las funciones O(1) o de complejidad constante son aquellas que, independientemente del tamaño del input, se ejecutan en igual tiempo. En el TDA ABB son...
 
-Árbol de raíz:
-En esta operación el proceso es siempre el mismo, se ha verificado que está recibiendo lo necesario y regresando a la raíz. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+```h
+abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor);
 
-O (1)
-Árbol vacío:
-En esta operación el proceso es siempre el mismo, se verifica que está recibiendo lo necesario, se reserva la memoria y se verifica que tenga root. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+void* arbol_raiz(abb_t* arbol);
 
-O (1)
-Función de viaje de árbol:
-En estas operaciones, el proceso comienza desde la raíz, avanza a la siguiente, luego a la siguiente, y así sucesivamente, pero siempre avanza en el mismo orden según el establecimiento de la ruta. Cada vez que se ingresa un elemento, su complejidad fija es O (1). Ahora, para n elementos, este proceso se realizará n veces. Entonces la complejidad de estas operaciones será:
+bool arbol_vacio(abb_t* arbol);
+```
 
-en)
-Tree_destroy:
-Al igual que la operación de enrutamiento, esta operación debe pasar por todos los nodos para eliminarlos en 1. Luego, realizará una operación O (1) n veces. Por tanto, su complejidad será:
+Al crear árboles se realiza el mismo proceso: se verifica que se recibe un comparador, se reserva memoria y se asignan los valores arbol->comparador y arbol->destructor a lo recibido por parámetro. 
 
-en)
-Abb_with_each_element:
-En esta operación, la operación es la misma que la ruta porque se recorre en el árbol con la ruta indicada. La diferencia es que cada función aplica una función específica, pero esto no afecta la complejidad. La complejidad de cada nodo es O (1) y se atraviesan n nodos. Entonces la complejidad de estas operaciones será:
+En arbol_vacio, por su parte, se verifica la existencia del primer valor del árbol, por lo que no es necesario un recorrido. 
 
-en)
+Finalmente, en arbol_raiz, hacemos algo parecido: leemos el elemento almacenado en el nodo raíz, de existir este.
+
+Por esto, la complejidad en los 3 casos se mantiene constante. 
+
+
+
+_Funciones de complejidad O(log(n)):_
+
+Las funciones O(log(n)) o de complejidad logarítmica son aquellas donde el tiempo de cálculo crece lentamente según la cantidad de datos del input se incrementa exponencialmente.
+
+```h
+int arbol_insertar(abb_t* arbol, void* elemento);
+
+int arbol_borrar(abb_t* arbol, void* elemento);
+
+void* arbol_buscar(abb_t* arbol, void* elemento);
+```
+
+En estas tres funciones lo que hacemos es buscar/insertar/eliminar un elemento en específico, pero al tener las nociones de izquierda (menores a raíz) y derecha (mayores a raíz), podemos "descartar" n/2-elementos para cada subárbol hasta encontrar la posición indicada. 
+
+
+
+_Funciones de complejidad O(n):_
+
+Las funciones O(n) o de complejidad lineal son aquellas donde el tiempo de cálculo crece a igual ritmo.
+
+```h
+size_t arbol_recorrido_inorden(abb_t* arbol, void** array, size_t tamanio_array);
+
+size_t arbol_recorrido_preorden(abb_t* arbol, void** array, size_t tamanio_array);
+
+size_t arbol_recorrido_postorden(abb_t* arbol, void** array, size_t tamanio_array);
+
+void arbol_destruir(abb_t* arbol);
+
+size_t abb_con_cada_elemento(abb_t* arbol, int recorrido, bool (*funcion)(void*, void*), void* extra);
+```
+
+En las funciones de recorrido, en caso que el tamaño del array pasado por parámetro sea mayor a la cantidad de elementos del árbol (n), debemos acceder a los n-elementos. 
+
+Luego, en abb_con_cada_elemento, también estamos usando estos recorridos por lo que la complejidad es la misma.
+
+Al destruir el arbol, debemos recorrer la n-cantidad de nodos para eliminarlos de a uno.
+
 
 
 ---
