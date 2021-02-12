@@ -118,9 +118,42 @@ Las operaciones básicas de árboles binarios son:
 
 * **Función de Destrucción**
 
+La función de destrucción le permite al usuario ingresar cualquier tipo de información en su nodo, y si éste es correcto, esa información será insertada en el árbol.
+
+Si no tiene esta función, solo puede ingresar elementos que no requieran ningún procesamiento especial para eliminarlos. Por ejemplo, los elementos del montón no se pueden insertar porque no se puede liberar el espacio necesario para ellos. Por lo tanto, puede ver que la razón principal es que proporciona flexibilidad para la implementación.
 
 * **Complejidad Algorítmica**
 
+Creación de árboles:
+En esta operación el proceso es siempre el mismo, verifica que está recibiendo lo necesario, reserva memoria e inicializa valores. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+
+O (1)
+Tree_insert, eliminar y buscar:
+En estas operaciones, se recorre el árbol para encontrar la ubicación o el elemento específico a insertar. Ahora, sabiendo que el árbol es una búsqueda binaria, sabemos que el elemento de la izquierda es más pequeño y el elemento de la derecha es más grande. Por lo tanto, cada vez que avanzo, reduzco n / 2 elementos hasta llegar a la posición deseada. Se puede convertir a 1 = N / 2 ^ x. Para resolver este problema, obtenemos x = log (n). Por tanto, la complejidad es:
+
+Registro (n)
+Aclaración: Si el árbol se deforma para enumerar la complejidad, la complejidad se convierte en O (n) porque tendrá que atravesar todos los elementos y no se puede descartar.
+
+Árbol de raíz:
+En esta operación el proceso es siempre el mismo, se ha verificado que está recibiendo lo necesario y regresando a la raíz. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+
+O (1)
+Árbol vacío:
+En esta operación el proceso es siempre el mismo, se verifica que está recibiendo lo necesario, se reserva la memoria y se verifica que tenga root. Por tanto, la complejidad de este proceso no cambiará con el cambio de elementos, de lo contrario será:
+
+O (1)
+Función de viaje de árbol:
+En estas operaciones, el proceso comienza desde la raíz, avanza a la siguiente, luego a la siguiente, y así sucesivamente, pero siempre avanza en el mismo orden según el establecimiento de la ruta. Cada vez que se ingresa un elemento, su complejidad fija es O (1). Ahora, para n elementos, este proceso se realizará n veces. Entonces la complejidad de estas operaciones será:
+
+en)
+Tree_destroy:
+Al igual que la operación de enrutamiento, esta operación debe pasar por todos los nodos para eliminarlos en 1. Luego, realizará una operación O (1) n veces. Por tanto, su complejidad será:
+
+en)
+Abb_with_each_element:
+En esta operación, la operación es la misma que la ruta porque se recorre en el árbol con la ruta indicada. La diferencia es que cada función aplica una función específica, pero esto no afecta la complejidad. La complejidad de cada nodo es O (1) y se atraviesan n nodos. Entonces la complejidad de estas operaciones será:
+
+en)
 
 
 ---

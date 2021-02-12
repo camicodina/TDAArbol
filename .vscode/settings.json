@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "*.txt": "c"
+        "*.txt": "c",
+        "pa2mm.h": "c"
     }
 }

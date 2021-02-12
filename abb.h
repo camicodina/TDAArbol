@@ -8,12 +8,9 @@
 #define EXITO 0
 #define FALLA -1
 
-#define IZQUIERDA -1
-#define DERECHA 1
-#define IGUALES 0
-
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
  * Comparador de elementos. Recibe dos elementos del arbol y devuelve

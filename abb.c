@@ -5,12 +5,9 @@
 #define EXITO 0
 #define FALLA -1
 
-#define IZQUIERDA -1
-#define DERECHA 1
-#define IGUALES 0
-
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "abb.h"
 
 // -------------------------- FUNCIONES CREACION -------------------------- //
@@ -25,11 +22,10 @@
  */
 abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
     if(!comparador) return NULL;
-    if(!destructor) return NULL;
     abb_t* arbol = calloc(1,sizeof(abb_t));
 	if(!arbol) return NULL;
 	arbol->comparador= comparador;
-	arbol->destructor= destructor;
+    arbol->destructor= destructor;
     return arbol;
 }
 
@@ -41,13 +37,13 @@ abb_t* arbol_crear(abb_comparador comparador, abb_liberar_elemento destructor){
 
 void aux_insertar_nodo(abb_t* arbol,nodo_abb_t* actual,nodo_abb_t* nuevo_nodo,void* elemento_nuevo){
     int comparador = arbol->comparador(elemento_nuevo,actual->elemento);
-    if((comparador == IGUALES)||(comparador == IZQUIERDA)){ // Me muevo a la izquierda
+    if((comparador == 0)||(comparador < 0)){ // Me muevo a la izquierda
         if(!(actual->izquierda)){
             actual->izquierda = nuevo_nodo;
             return;
         }
         actual = actual->izquierda;
-    }else{ // (comparador == DERECHA) Me muevo a derecha
+    }else{ // (comparador > 0) Me muevo a derecha
         if(!(actual->derecha)){
             actual->derecha = nuevo_nodo;
             return;
@@ -90,11 +86,11 @@ void* aux_buscar_nodo(abb_t* arbol,nodo_abb_t* actual, void* elemento_buscado){
     if(!actual) return NULL;
 
     int comparador = arbol->comparador(elemento_buscado, actual->elemento);
-    if(comparador == IGUALES){
+    if(comparador == 0){
         return actual->elemento;
-    }else if(comparador == IZQUIERDA){ // Me muevo a izquierda
+    }else if(comparador < 0){ // Me muevo a izquierda
             actual = actual->izquierda;
-    }else{ //comparador = DERECHA. Me muevo a derecha
+    }else{ //comparador > 0. Me muevo a derecha
         actual = actual->derecha;
     }
     return aux_buscar_nodo(arbol,actual,elemento_buscado);
@@ -135,20 +131,27 @@ int aux_cantidad_hijos(nodo_abb_t* nodo){
 /*
  * Busca el menor elemento dentro del subarbol derecho
  */
-nodo_abb_t* aux_buscar_menor_subarbol_derecho(nodo_abb_t* nodo_menor_subarbol){
-	if(!nodo_menor_subarbol->izquierda){
-        return nodo_menor_subarbol;
+nodo_abb_t* aux_buscar_predecesor_inorden(nodo_abb_t* nodo_mayor_izquierdo){
+	// Mayor sub-arbol izquierdo
+    if(!nodo_mayor_izquierdo->derecha){
+        return nodo_mayor_izquierdo;
     }else{
-        return aux_buscar_menor_subarbol_derecho(nodo_menor_subarbol->izquierda);
+        return aux_buscar_predecesor_inorden(nodo_mayor_izquierdo->derecha);
     }
+}
+
+void aux_borrar_puntero_predecesor_inorden(nodo_abb_t* nodo_subarbol_izquierdo){
+    if(!nodo_subarbol_izquierdo->derecha->derecha){
+        nodo_subarbol_izquierdo->derecha = NULL;
+        return;
+    }
+    aux_borrar_puntero_predecesor_inorden(nodo_subarbol_izquierdo->derecha);
 }
 
 /*
  * Retorna el que será el nuevo nodo padre cuando sea borrado es el nodo raíz (nodo actual).
  */
 nodo_abb_t* borrar_raiz(abb_t* arbol,nodo_abb_t* raiz){
-    if(!arbol) return NULL;
-    if(!raiz) return NULL;
     nodo_abb_t* nuevo_padre = NULL;
     int cantidad_hijos = aux_cantidad_hijos(raiz);
 
@@ -160,12 +163,12 @@ nodo_abb_t* borrar_raiz(abb_t* arbol,nodo_abb_t* raiz){
         }
     }
     if(cantidad_hijos == 2){
- 		nuevo_padre = aux_buscar_menor_subarbol_derecho(raiz->derecha);
-
-        if(raiz->derecha != nuevo_padre){
-            nuevo_padre->derecha = raiz->derecha;
+ 		nuevo_padre = aux_buscar_predecesor_inorden(raiz->izquierda);
+        if(raiz->izquierda != nuevo_padre){
+            nuevo_padre->izquierda = raiz->izquierda;
+            aux_borrar_puntero_predecesor_inorden(raiz->izquierda);
         }
-        nuevo_padre->izquierda = raiz->izquierda;
+        nuevo_padre->derecha = raiz->derecha;
     }
     return nuevo_padre;
 }
@@ -175,21 +178,19 @@ nodo_abb_t* borrar_raiz(abb_t* arbol,nodo_abb_t* raiz){
  * Función recursiva para borrar nodos en el ABB.
  */
 nodo_abb_t* aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borrar,bool* fue_borrado){
-    if(!arbol) return NULL;
-    if(!arbol->comparador) return NULL;
-    if(!arbol->destructor) return NULL;
-    if(!actual) return NULL;
     int comparador = arbol->comparador(elemento_borrar,actual->elemento);
 
-    if(comparador == IGUALES){ // nodo_raiz tiene al elemento buscado
+    if(comparador == 0){ // nodo_raiz tiene al elemento buscado
         nodo_abb_t* aux_nodo_padre = borrar_raiz(arbol,actual);
-        arbol->destructor(actual->elemento);
+        if(arbol->destructor){
+             arbol->destructor(actual->elemento);
+        }
  		free(actual);
         *fue_borrado = true;
  		return aux_nodo_padre;
     }
 
-    if(comparador == IZQUIERDA){ //Primero menor al segundo. Me muevo a la izquierda.
+    if(comparador < 0){ //Primero menor al segundo. Me muevo a la izquierda.
         actual->izquierda=aux_borrar_nodo(arbol,actual->izquierda,elemento_borrar,fue_borrado);
     }else{ //comparador == DERECHA. Primero mayor al segundo. Me muevo a la derecha.
         actual->derecha=aux_borrar_nodo(arbol,actual->derecha,elemento_borrar,fue_borrado);
@@ -208,6 +209,7 @@ nodo_abb_t* aux_borrar_nodo(abb_t* arbol,nodo_abb_t* actual,void* elemento_borra
 int arbol_borrar(abb_t* arbol, void* elemento){
     if(!arbol) return FALLA;
     if(arbol_vacio(arbol)) return FALLA;
+    if(!arbol->comparador) return FALLA;
     bool fue_borrado=false;
     arbol->nodo_raiz = aux_borrar_nodo(arbol,arbol->nodo_raiz,elemento,&fue_borrado);
     if(fue_borrado) return EXITO;
@@ -375,13 +377,14 @@ size_t arbol_recorrido_postorden(abb_t* arbol, void** array, size_t tamanio_arra
  */
 void aux_destruir_nodos(abb_t* arbol, nodo_abb_t* nodo_a_destruir){
     if(!arbol) return;
-    if(!arbol->destructor) return;
     if(!nodo_a_destruir) return;
 
     aux_destruir_nodos(arbol, nodo_a_destruir->izquierda);
     aux_destruir_nodos(arbol, nodo_a_destruir->derecha);
 
-	arbol->destructor(nodo_a_destruir->elemento);
+    if(arbol->destructor){
+        arbol->destructor(nodo_a_destruir->elemento);
+    }
 	free(nodo_a_destruir);
 }
 
@@ -393,7 +396,6 @@ void aux_destruir_nodos(abb_t* arbol, nodo_abb_t* nodo_a_destruir){
  */
 void arbol_destruir(abb_t* arbol){
     if(!arbol) return;
-    if(!arbol->destructor) return;
     if(!arbol_vacio(arbol)){
         aux_destruir_nodos(arbol,arbol->nodo_raiz);
         }

@@ -145,7 +145,7 @@ void probar_recorrido(){
     size_t tamanio_inorden = 6;
     size_t tamanio_preorden = 10;
     size_t tamanio_postorden = 4;
-    int* elementos[10];
+    int* elementos[6];
 
     pa2m_afirmar(arbol_recorrido_inorden(arbol_recorrer, (void**)elementos, tamanio_inorden) == 6, "Recorrido inorden OK");
     pa2m_afirmar(arbol_recorrido_preorden(arbol_recorrer, (void**)elementos, tamanio_preorden) == 6, "Recorrido preorden OK");
@@ -157,26 +157,33 @@ void probar_recorrido(){
 
 // -------------------------- PRUEBAS ITERADOR INTERNO -------------------------- //
 
-bool mostrar_elemento(int elemento, void* extra){
+bool mostrar_elemento(void* elemento, void* extra){
     extra=extra; //para que no se queje el compilador, gracias -Werror -Wall
     if(elemento)
-        printf("%i ", elemento);
+        printf("%i ", ((pagina_web_t*)elemento)->clave);
     return false;
 }
 
 void prueba_iterador_interno(){
-    abb_t* arbol =arbol_crear(comparar_contenido,NULL);
-    int c=6,a1=2,m=7,i=9,l=3,a2=1;
+    pagina_web_t* title= crear_contenido(1);
+    pagina_web_t* head= crear_contenido(2);
+    pagina_web_t* meta= crear_contenido(3);
+    pagina_web_t* html= crear_contenido(5);
+    pagina_web_t* body= crear_contenido(15);
 
-    arbol_insertar(arbol,&c);
-    arbol_insertar(arbol,&a1);
-    arbol_insertar(arbol,&m);
-    arbol_insertar(arbol,&i);
-    arbol_insertar(arbol,&l);
-    arbol_insertar(arbol,&a2);
+    abb_t* arbol_iterador = arbol_crear(comparar_contenido, destructor_de_contenido);
 
-    pa2m_afirmar(abb_con_cada_elemento(arbol, ABB_RECORRER_INORDEN, mostrar_elemento, NULL); == 4, "Iterador OK");
+    arbol_insertar(arbol_iterador,html);
+    arbol_insertar(arbol_iterador,head);
+    arbol_insertar(arbol_iterador,body);
+    arbol_insertar(arbol_iterador,title);
+    arbol_insertar(arbol_iterador,meta);
 
+    pa2m_afirmar(abb_con_cada_elemento(arbol_iterador, ABB_RECORRER_INORDEN, mostrar_elemento, NULL) == 5, "Iterador Interno (inorden) OK");
+    pa2m_afirmar(abb_con_cada_elemento(arbol_iterador, ABB_RECORRER_PREORDEN, mostrar_elemento, NULL) == 5, "Iterador Interno (preorden) OK");
+    pa2m_afirmar(abb_con_cada_elemento(arbol_iterador, ABB_RECORRER_POSTORDEN, mostrar_elemento, NULL) == 5, "Iterador Interno (postorden) OK");
+
+    arbol_destruir(arbol_iterador);
 }
 
 int main(){
