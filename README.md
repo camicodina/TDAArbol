@@ -124,7 +124,9 @@ Si no tiene esta función, solo puede ingresar elementos que no requieran ningú
 
 * **Complejidad Algorítmica**
 
-<p align="center"><img width=80% src="https://miro.medium.com/max/2544/1*FkQzWqqIMlAHZ_xNrEPKeA.png"></p>
+<p align="center"><img width=60% src="https://miro.medium.com/max/2544/1*FkQzWqqIMlAHZ_xNrEPKeA.png"></p>
+
+Dadas las funciones de abb.h...
 
 _Funciones de complejidad O(1):_
 
@@ -146,7 +148,7 @@ Finalmente, en arbol_raiz, hacemos algo parecido: leemos el elemento almacenado 
 
 Por esto, la complejidad en los 3 casos se mantiene constante. 
 
-
+<br><br>
 
 _Funciones de complejidad O(log(n)):_
 
@@ -162,7 +164,7 @@ void* arbol_buscar(abb_t* arbol, void* elemento);
 
 En estas tres funciones lo que hacemos es buscar/insertar/eliminar un elemento en específico, pero al tener las nociones de izquierda (menores a raíz) y derecha (mayores a raíz), podemos "descartar" n/2-elementos para cada subárbol hasta encontrar la posición indicada. 
 
-
+<br><br>
 
 _Funciones de complejidad O(n):_
 
