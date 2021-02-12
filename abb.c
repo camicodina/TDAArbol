@@ -129,10 +129,9 @@ int aux_cantidad_hijos(nodo_abb_t* nodo){
 }
 
 /*
- * Busca el menor elemento dentro del subarbol derecho
+ * Busca el predecesor inorden, es decir, el mayor elemento dentro del subarbol izquierdo.
  */
 nodo_abb_t* aux_buscar_predecesor_inorden(nodo_abb_t* nodo_mayor_izquierdo){
-	// Mayor sub-arbol izquierdo
     if(!nodo_mayor_izquierdo->derecha){
         return nodo_mayor_izquierdo;
     }else{
@@ -140,6 +139,9 @@ nodo_abb_t* aux_buscar_predecesor_inorden(nodo_abb_t* nodo_mayor_izquierdo){
     }
 }
 
+/*
+ * Busca el nodo anterior al predecesor inorden y borra el puntero al predecesor inorden.
+ */
 void aux_borrar_puntero_predecesor_inorden(nodo_abb_t* nodo_subarbol_izquierdo){
     if(!nodo_subarbol_izquierdo->derecha->derecha){
         nodo_subarbol_izquierdo->derecha = NULL;
@@ -405,6 +407,14 @@ void arbol_destruir(abb_t* arbol){
 
 // -------------------------- ITERADOR INTERNO -------------------------- //
 
+
+/*
+ * Recorrido inorden para el iterador interno. 
+ * Recorre a la izquierda.
+ * Al visitar el nodo central de cada sub-árbol, aumenta el contador de cantidad de nodos y
+ * "pregunta" si debe seguir recorriendo a la función pasada por parámetro.
+ * Recorre a la derecha.
+*/
 void iterador_recorrido_inorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
     if(!nodo_raiz) return;
 
@@ -420,6 +430,14 @@ void iterador_recorrido_inorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, vo
     }
 }
 
+
+/*
+ * Recorrido preorden para el iterador interno. 
+ * Al visitar el nodo central de cada sub-árbol, aumenta el contador de cantidad de nodos y
+ * "pregunta" si debe seguir recorriendo a la función pasada por parámetro.
+ * Recorre a la izquierda.
+ * Recorre a la derecha.
+*/
 void iterador_recorrido_preorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
     if(!nodo_raiz) return;
 
@@ -435,6 +453,14 @@ void iterador_recorrido_preorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, v
     }
 }
 
+
+/*
+ * Recorrido postorden para el iterador interno. 
+ * Recorre a la izquierda.
+ * Recorre a la derecha.
+ * Al visitar el nodo central de cada sub-árbol, aumenta el contador de cantidad de nodos y
+ * "pregunta" si debe seguir recorriendo a la función pasada por parámetro.
+*/
 void iterador_recorrido_postorden(nodo_abb_t* nodo_raiz, bool (*funcion)(void*, void*), void* extra, bool* sigo, size_t* cantidad){
     if(!nodo_raiz) return;
 
