@@ -148,11 +148,11 @@ Finalmente, en arbol_raiz, hacemos algo parecido: leemos el elemento almacenado 
 
 Por esto, la complejidad en los 3 casos se mantiene constante. 
 
-<br><br>
+<br>
 
-_Funciones de complejidad O(log(n)):_
+_Funciones de complejidad O(n):_
 
-Las funciones O(log(n)) o de complejidad logarítmica son aquellas donde el tiempo de cálculo crece lentamente según la cantidad de datos del input se incrementa exponencialmente.
+Las funciones O(n) o de complejidad lineal son aquellas donde el tiempo de cálculo crece a igual ritmo.
 
 ```h
 int arbol_insertar(abb_t* arbol, void* elemento);
@@ -162,13 +162,9 @@ int arbol_borrar(abb_t* arbol, void* elemento);
 void* arbol_buscar(abb_t* arbol, void* elemento);
 ```
 
-En estas tres funciones lo que hacemos es buscar/insertar/eliminar un elemento en específico, pero al tener las nociones de izquierda (menores a raíz) y derecha (mayores a raíz), podemos "descartar" n/2-elementos para cada subárbol hasta encontrar la posición indicada. 
-
-<br><br>
-
-_Funciones de complejidad O(n):_
-
-Las funciones O(n) o de complejidad lineal son aquellas donde el tiempo de cálculo crece a igual ritmo.
+Esto es debido a que el ABB, a diferencia del AVL o los árboles rojo negro, no es autobalanceable. Esto significa que el ABB puede degenerar en una lista si siempre se insertan elementos mayores o menores respecto al elemento que fue insertado anteriormente, respectivamente. Los AVL y los arboles rojo negro evitan esto
+haciendo los rebalanceos de si mismos para que las operaciones de inserción, busqueda y borrado siempre sean O(log n).
+Las funciones O(log(n)) o de complejidad logarítmica son aquellas donde el tiempo de cálculo crece lentamente según la cantidad de datos del input se incrementa exponencialmente.
 
 ```h
 size_t arbol_recorrido_inorden(abb_t* arbol, void** array, size_t tamanio_array);
@@ -187,7 +183,6 @@ En las funciones de recorrido, en caso que el tamaño del array pasado por pará
 Luego, en abb_con_cada_elemento, también estamos usando estos recorridos por lo que la complejidad es la misma.
 
 Al destruir el arbol, debemos recorrer la n-cantidad de nodos para eliminarlos de a uno.
-
 
 
 ---
