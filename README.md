@@ -95,6 +95,8 @@ Estos árboles utilizan distintos métodos:
 5. Borrar
 6. Recorrer
 7. Buscar
+
+
 Sin embargo, una gran desventaja de esta estructura de datos es que que carece de mucha utilidad pues no tiene especificado ningun tipo de regla para operar sobre ella.
 Por ejemplo, si quisiera buscar un elemento particular en un árbol binario debería recorrer todo el árbol hasta obtener el nodo con el elemento deseado. En el peor de los casos, la complejidad algorítmica para buscar un elemento es O(n).
 
